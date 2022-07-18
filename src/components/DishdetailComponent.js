@@ -1,15 +1,8 @@
-import React, { Component } from "react";
-import {
-  Card,
-  CardImg,
-  CardImgOverlay,
-  CardText,
-  CardBody,
-  CardTitle,
-} from "reactstrap";
+import React from "react";
+import { Card, CardImg, CardText, CardBody, CardTitle } from "reactstrap";
 import { COMMENTS } from "../shared/comments";
 
-function RenderDish(dish) {
+function RenderDish({ dish }) {
   return (
     <Card className="col-12 col-md-5 m-1">
       <CardImg width="100%" src={dish.image} alt={dish.name} />
@@ -21,7 +14,7 @@ function RenderDish(dish) {
   );
 }
 
-function RenderComments(comments) {
+function RenderComments({ comments }) {
   if (comments != null)
     return (
       <div className="col-12 col-md-5 m-1">
@@ -57,10 +50,12 @@ const DishDetail = (props) => {
     return (
       <div className="container">
         <div className="row">
-          {RenderDish(props.dish)}
-          {RenderComments(
-            COMMENTS.filter((comment) => comment.dishId == props.dish.id)
-          )}
+          <RenderDish dish={props.dish} />
+          <RenderComments
+            comments={COMMENTS.filter(
+              (comment) => comment.dishId === props.dish.id
+            )}
+          />
         </div>
       </div>
     );
