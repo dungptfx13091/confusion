@@ -7,6 +7,7 @@ import {
   CardTitle,
   CardSubtitle,
 } from "reactstrap";
+import { Link } from "react-router-dom";
 
 function RenderCard({ item }) {
   return (
