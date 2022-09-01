@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import {
   Card,
   CardImg,
@@ -7,13 +7,23 @@ import {
   CardTitle,
   Breadcrumb,
   BreadcrumbItem,
+  Col,
+  Label,
+  Row,
+  Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  FormGroup,
+  Input,
+  Form,
 } from "reactstrap";
-import { COMMENTS } from "../shared/comments";
 import { Link } from "react-router-dom";
+import { Control, LocalForm } from "react-redux-form";
 
 function RenderDish({ dish }) {
   return (
-    <Card className="col-12 col-md-5 m-1">
+    <Card>
       <CardImg width="100%" src={dish.image} alt={dish.name} />
       <CardBody>
         <CardTitle>{dish.name}</CardTitle>
@@ -23,10 +33,14 @@ function RenderDish({ dish }) {
   );
 }
 
-function RenderComments({ comments }) {
+function RenderComments({ comments, postComment, dishId }) {
+  console.log(comments);
+  console.log(postComment);
+  console.log(dishId);
+
   if (comments != null)
     return (
-      <div className="col-12 col-md-5 m-1">
+      <div>
         <h4>Comments</h4>
         <ul className="list-unstyled">
           <div>
@@ -49,12 +63,106 @@ function RenderComments({ comments }) {
             })}
           </div>
         </ul>
+
+        <CommentForm dishId={dishId} />
       </div>
     );
   else return <div></div>;
 }
 
+class CommentForm extends Component {
+  constructor(props) {
+    super(props);
+
+    this.toggleModal = this.toggleModal.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+
+    this.state = {
+      isModalOpen: false,
+    };
+  }
+
+  toggleModal() {
+    this.setState({
+      isModalOpen: !this.state.isModalOpen,
+    });
+    console.log(this.props);
+    console.log(this.state.isModalOpen);
+  }
+
+  handleSubmit(values) {
+    this.toggleModal();
+    console.log(values);
+    console.log("post comment");
+  }
+
+  render() {
+    console.log(this.props);
+
+    return (
+      <div>
+        <Button outline onClick={this.toggleModal}>
+          <span className="fa fa-pencil fa-lg"></span> Submit Comment
+        </Button>
+        <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
+          <ModalHeader toggle={this.toggleModal}>Submit Comment</ModalHeader>
+          <ModalBody>
+            {/* <LocalForm onSubmit={(values) => this.handleSubmit(values)}> */}
+            <Form>
+              <FormGroup row>
+                <Col>
+                  <Label htmlFor="rating">Rating</Label>
+                  <Input type="select" name="rating">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </Input>
+                  {/* <Control.select
+                    model=".rating"
+                    id="rating"
+                    className="form-control"
+                  >
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </Control.select> */}
+                </Col>
+              </FormGroup>
+              <FormGroup row>
+                <Col>
+                  <Label htmlFor="comment">Comment</Label>
+                  <Input
+                    type="textarea"
+                    id="comment"
+                    name="comment"
+                    rows="6"
+                  ></Input>
+                  {/* <Control.textarea
+                    model=".comment"
+                    id="comment"
+                    rows="6"
+                    className="form-control"
+                  /> */}
+                </Col>
+              </FormGroup>
+              <Button type="submit" className="bg-primary">
+                Submit
+              </Button>
+            </Form>
+          </ModalBody>
+        </Modal>
+      </div>
+    );
+  }
+}
+
 const DishDetail = (props) => {
+  console.log("DishDetail.props", props);
+
   if (props.dish != null)
     return (
       <div className="container">
