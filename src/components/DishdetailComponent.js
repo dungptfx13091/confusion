@@ -34,10 +34,6 @@ function RenderDish({ dish }) {
 }
 
 function RenderComments({ comments, postComment, dishId }) {
-  console.log(comments);
-  console.log(postComment);
-  console.log(dishId);
-
   if (comments != null)
     return (
       <div>
@@ -86,19 +82,13 @@ class CommentForm extends Component {
     this.setState({
       isModalOpen: !this.state.isModalOpen,
     });
-    console.log(this.props);
-    console.log(this.state.isModalOpen);
   }
 
   handleSubmit(values) {
     this.toggleModal();
-    console.log(values);
-    console.log("post comment");
   }
 
   render() {
-    console.log(this.props);
-
     return (
       <div>
         <Button outline onClick={this.toggleModal}>
@@ -161,8 +151,6 @@ class CommentForm extends Component {
 }
 
 const DishDetail = (props) => {
-  console.log("DishDetail.props", props);
-
   if (props.dish != null)
     return (
       <div className="container">
