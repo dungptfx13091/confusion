@@ -17,6 +17,7 @@ import {
   fetchLeaders,
   loginUser,
   logoutUser,
+ 
 } from "../redux/ActionCreators";
 import { actions } from "react-redux-form";
 
@@ -49,6 +50,7 @@ const mapDispatchToProps = (dispatch) => ({
   postFeedback: (feedback) => dispatch(postFeedback(feedback)),
   loginUser: (creds) => dispatch(loginUser(creds)),
   logoutUser: () => dispatch(logoutUser()),
+
 });
 
 class Main extends Component {
@@ -101,6 +103,7 @@ class Main extends Component {
           )}
           commentsErrMess={this.props.comments.errMess}
           addComment={this.props.addComment}
+          
         />
       ) : (
         <DishDetail
@@ -162,6 +165,7 @@ class Main extends Component {
             component={() => <Menu dishes={this.props.dishes} />}
           />
           <Route path="/menu/:dishId" component={DishWithId} />
+          
           <Route
             exact
             path="/contactus"
