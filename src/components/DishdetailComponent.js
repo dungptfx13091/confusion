@@ -2,65 +2,62 @@ import React, { Component } from "react";
 import {
   Card,
   CardImg,
+  CardImgOverlay,
   CardText,
   CardBody,
   CardTitle,
   Breadcrumb,
   BreadcrumbItem,
-  Col,
   Label,
-  Row,
-  Button,
   Modal,
   ModalHeader,
   ModalBody,
-  FormGroup,
-  Input,
-  Form,
+  Button,
+  Row,
+  Col,
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import { Control, LocalForm } from "react-redux-form";
+import { Loading } from "./LoadingComponent";
 
 function RenderDish({ dish }) {
   return (
-    <Card>
-      <CardImg width="100%" src={dish.image} alt={dish.name} />
-      <CardBody>
-        <CardTitle>{dish.name}</CardTitle>
-        <CardText>{dish.description}</CardText>
-      </CardBody>
-    </Card>
+    <div className="col-12 col-md-5 m-1">
+      <Card>
+        <CardImg top src={dish.image} alt={dish.name} />
+        <CardBody>
+          <CardTitle>{dish.name}</CardTitle>
+          <CardText>{dish.description}</CardText>
+        </CardBody>
+      </Card>
+    </div>
   );
 }
 
-function RenderComments({ comments, postComment, dishId }) {
+function RenderComments({ comments, addComment, dishId }) {
   if (comments != null)
     return (
-      <div>
+      <div className="col-12 col-md-5 m-1">
         <h4>Comments</h4>
         <ul className="list-unstyled">
-          <div>
-            {comments.map((comment) => {
-              return (
-                <div key={comment.id}>
-                  <li>
-                    <p>{comment.comment}</p>
-                    <p>
-                      -- {comment.author},{" "}
-                      {new Intl.DateTimeFormat("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "2-digit",
-                      }).format(new Date(Date.parse(comment.date)))}
-                    </p>
-                  </li>
-                </div>
-              );
-            })}
-          </div>
+          {comments.map((comment) => {
+            return (
+              <li>
+                <p>{comment.comment}</p>
+                <p>{comment.rating} stars</p>
+                <p>
+                  -- {comment.author.firstname} {comment.author.lastname} ,{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit",
+                  }).format(new Date(Date.parse(comment.updatedAt)))}
+                </p>
+              </li>
+            );
+          })}
         </ul>
-
-        <CommentForm dishId={dishId} />
+        <CommentForm dishId={dishId} addComment={addComment} />
       </div>
     );
   else return <div></div>;
@@ -74,6 +71,7 @@ class CommentForm extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
 
     this.state = {
+      isNavOpen: false,
       isModalOpen: false,
     };
   }
@@ -86,6 +84,12 @@ class CommentForm extends Component {
 
   handleSubmit(values) {
     this.toggleModal();
+    this.props.addComment(
+      this.props.dishId,
+      values.rating,
+      values.author,
+      values.comment
+    );
   }
 
   render() {
@@ -97,19 +101,11 @@ class CommentForm extends Component {
         <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
           <ModalHeader toggle={this.toggleModal}>Submit Comment</ModalHeader>
           <ModalBody>
-            {/* <LocalForm onSubmit={(values) => this.handleSubmit(values)}> */}
-            <Form>
-              <FormGroup row>
+            <LocalForm onSubmit={(values) => this.handleSubmit(values)}>
+              <Row className="form-group">
                 <Col>
                   <Label htmlFor="rating">Rating</Label>
-                  <Input type="select" name="rating">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                  </Input>
-                  {/* <Control.select
+                  <Control.select
                     model=".rating"
                     id="rating"
                     className="form-control"
@@ -119,30 +115,24 @@ class CommentForm extends Component {
                     <option>3</option>
                     <option>4</option>
                     <option>5</option>
-                  </Control.select> */}
+                  </Control.select>
                 </Col>
-              </FormGroup>
-              <FormGroup row>
+              </Row>
+              <Row className="form-group">
                 <Col>
                   <Label htmlFor="comment">Comment</Label>
-                  <Input
-                    type="textarea"
-                    id="comment"
-                    name="comment"
-                    rows="6"
-                  ></Input>
-                  {/* <Control.textarea
+                  <Control.textarea
                     model=".comment"
                     id="comment"
                     rows="6"
                     className="form-control"
-                  /> */}
+                  />
                 </Col>
-              </FormGroup>
+              </Row>
               <Button type="submit" className="bg-primary">
                 Submit
               </Button>
-            </Form>
+            </LocalForm>
           </ModalBody>
         </Modal>
       </div>
@@ -151,7 +141,23 @@ class CommentForm extends Component {
 }
 
 const DishDetail = (props) => {
-  if (props.dish != null)
+  if (props.isLoading) {
+    return (
+      <div className="container">
+        <div className="row">
+          <Loading />
+        </div>
+      </div>
+    );
+  } else if (props.errMess) {
+    return (
+      <div className="container">
+        <div className="row">
+          <h4>{props.errMess}</h4>
+        </div>
+      </div>
+    );
+  } else if (props.dish != null)
     return (
       <div className="container">
         <div className="row">
@@ -167,15 +173,16 @@ const DishDetail = (props) => {
           </div>
         </div>
         <div className="row">
-          <div className="col-12 col-md-5 m-1">
-            <RenderDish dish={props.dish} />
-          </div>
-          <div className="col-12 col-md-5 m-1">
-            <RenderComments comments={props.comments} />
-          </div>
+          <RenderDish dish={props.dish} />
+          <RenderComments
+            comments={props.comments}
+            addComment={props.addComment}
+            dishId={props.dish._id}
+          />
         </div>
       </div>
     );
   else return <div></div>;
 };
+
 export default DishDetail;

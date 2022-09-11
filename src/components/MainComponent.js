@@ -1,79 +1,159 @@
 import React, { Component } from "react";
+import Home from "./HomeComponent";
+import About from "./AboutComponent";
+import Menu from "./MenuComponent";
+import Contact from "./ContactComponent";
+import DishDetail from "./DishdetailComponent";
 import Header from "./HeaderComponent";
 import Footer from "./FooterComponent";
-import Menu from "./MenuComponent";
-import DishDetail from "./DishdetailComponent";
-import Home from "./HomeComponent";
-import Contact from "./ContactComponent";
-import About from "./AboutComponent";
+import { Switch, Route, Redirect, withRouter } from "react-router-dom";
+import { connect } from "react-redux";
+import {
+  addComment,
+  postFeedback,
+  fetchDishes,
+  loginUser,
+  logoutUser,
+} from "../redux/ActionCreators";
+import { actions } from "react-redux-form";
 
-import { DISHES } from "../shared/dishes";
-import { COMMENTS } from "../shared/comments";
-import { PROMOTIONS } from "../shared/promotions";
-import { LEADERS } from "../shared/leaders";
-import { Switch, Route, Redirect } from "react-router-dom";
+const mapStateToProps = (state) => {
+  return {
+    dishes: state.dishes,
+    comments: state.comments,
+    promotions: state.promotions,
+    leaders: state.leaders,
+    auth: state.auth,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  addComment: (dishId, rating, comment) =>
+    dispatch(addComment(dishId, rating, comment)),
+  fetchDishes: () => {
+    dispatch(fetchDishes());
+  },
+  resetFeedbackForm: () => {
+    dispatch(actions.reset("feedback"));
+  },
+
+  postFeedback: (feedback) => dispatch(postFeedback(feedback)),
+  loginUser: (creds) => dispatch(loginUser(creds)),
+  logoutUser: () => dispatch(logoutUser()),
+});
 
 class Main extends Component {
   constructor(props) {
     super(props);
+  }
 
-    this.state = {
-      dishes: DISHES,
-      comments: COMMENTS,
-      promotions: PROMOTIONS,
-      leaders: LEADERS,
-    };
+  componentDidMount() {
+    this.props.fetchDishes();
   }
 
   render() {
-    const DishWithId = ({ match }) => {
+    const HomePage = () => {
       return (
-        <DishDetail
-          dish={
-            this.state.dishes.filter(
-              (dish) => dish.id === parseInt(match.params.dishId, 10)
-            )[0]
-          }
-          comments={this.state.comments.filter(
-            (comment) => comment.dishId === parseInt(match.params.dishId, 10)
-          )}
+        <Home
+          dish={this.props.dishes.dishes.filter((dish) => dish.featured)[0]}
+          dishesLoading={this.props.dishes.isLoading}
+          dishesErrMess={this.props.dishes.errMess}
+          promotion={this.props.promotions.filter((promo) => promo.featured)[0]}
+          leader={this.props.leaders.filter((leader) => leader.featured)[0]}
         />
       );
     };
 
-    const HomePage = () => {
-      return (
-        <Home
-          dish={this.state.dishes.filter((dish) => dish.featured)[0]}
-          promotion={this.state.promotions.filter((promo) => promo.featured)[0]}
-          leader={this.state.leaders.filter((leader) => leader.featured)[0]}
+    const DishWithId = ({ match }) => {
+      return this.props.auth.isAuthenticated ? (
+        <DishDetail
+          dish={
+            this.props.dishes.dishes.filter(
+              (dish) => dish._id === match.params.dishId
+            )[0]
+          }
+          isLoading={this.props.dishes.isLoading}
+          errMess={this.props.dishes.errMess}
+          comments={this.props.comments.filter(
+            (comment) => comment.dish === match.params.dishId
+          )}
+          addComment={this.props.addComment}
+        />
+      ) : (
+        <DishDetail
+          dish={
+            this.props.dishes.dishes.filter(
+              (dish) => dish._id === match.params.dishId
+            )[0]
+          }
+          isLoading={this.props.dishes.isLoading}
+          errMess={this.props.dishes.errMess}
+          comments={this.props.comments.filter(
+            (comment) => comment.dish === match.params.dishId
+          )}
+          addComment={this.props.addComment}
+          favorite={false}
+          postFavorite={this.props.postFavorite}
         />
       );
     };
+
+    const PrivateRoute = ({ component: Component, ...rest }) => (
+      <Route
+        {...rest}
+        render={(props) =>
+          this.props.auth.isAuthenticated ? (
+            <Component {...props} />
+          ) : (
+            <Redirect
+              to={{
+                pathname: "/home",
+                state: { from: props.location },
+              }}
+            />
+          )
+        }
+      />
+    );
+
     return (
       <div>
-        <Header />
+        <Header
+          auth={this.props.auth}
+          loginUser={this.props.loginUser}
+          logoutUser={this.props.logoutUser}
+        />
+
         <Switch>
           <Route path="/home" component={HomePage} />
           <Route
             exact
-            path="/menu"
-            component={() => <Menu dishes={this.state.dishes} />}
+            path="/aboutus"
+            component={() => <About leaders={this.props.leaders} />}
           />
-          <Route path="/menu/:dishId" component={DishWithId} />
-          <Route exact path="/contactus" component={Contact} />
+          } />
           <Route
             exact
-            path="/aboutus"
-            component={() => <About leaders={this.state.leaders} />}
+            path="/menu"
+            component={() => <Menu dishes={this.props.dishes} />}
           />
-
-          <Redirect to="/home" />
+          <Route path="/menu/:dishId" component={DishWithId} />
+          <Route
+            exact
+            path="/contactus"
+            component={() => (
+              <Contact
+                resetFeedbackForm={this.props.resetFeedbackForm}
+                postFeedback={this.props.postFeedback}
+              />
+            )}
+          />
         </Switch>
+
         <Footer />
       </div>
     );
   }
 }
 
-export default Main;
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Main));
