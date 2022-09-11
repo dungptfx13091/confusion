@@ -27,7 +27,7 @@ function RenderLeader({ leader }) {
 }
 
 function LeaderList(props) {
-  const leaders = props.leaders.map((leader) => {
+  const leaders = props.leaders.leaders.map((leader) => {
     return (
       <div key={leader._id}>
         <div className="col-12 mt-2">
@@ -48,7 +48,7 @@ function LeaderList(props) {
   } else {
     return (
       <Media list>
-        <div>{leaders}</div>
+        <div in>{leaders}</div>
       </Media>
     );
   }
@@ -108,7 +108,7 @@ function About(props) {
         </div>
         <div className="col-12">
           <Card>
-            <CardBody className="bg-faded">
+            <CardBody className="bg-divd">
               <blockquote className="blockquote">
                 <p className="mb-0">
                   You better cut the pizza in four pieces because I'm not hungry
