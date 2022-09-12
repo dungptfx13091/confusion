@@ -4,6 +4,7 @@ import About from "./AboutComponent";
 import Menu from "./MenuComponent";
 import Contact from "./ContactComponent";
 import DishDetail from "./DishdetailComponent";
+import Favorites from "./FavoriteComponent";
 import Header from "./HeaderComponent";
 import Footer from "./FooterComponent";
 import { Switch, Route, Redirect, withRouter } from "react-router-dom";
@@ -17,9 +18,12 @@ import {
   fetchLeaders,
   loginUser,
   logoutUser,
- 
+  fetchFavorites,
+  postFavorite,
+  deleteFavorite,
 } from "../redux/ActionCreators";
 import { actions } from "react-redux-form";
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 
 const mapStateToProps = (state) => {
   return {
@@ -27,6 +31,7 @@ const mapStateToProps = (state) => {
     comments: state.comments,
     promotions: state.promotions,
     leaders: state.leaders,
+    favorites: state.favorites,
     auth: state.auth,
   };
 };
@@ -50,7 +55,9 @@ const mapDispatchToProps = (dispatch) => ({
   postFeedback: (feedback) => dispatch(postFeedback(feedback)),
   loginUser: (creds) => dispatch(loginUser(creds)),
   logoutUser: () => dispatch(logoutUser()),
-
+  fetchFavorites: () => dispatch(fetchFavorites()),
+  postFavorite: (dishId) => dispatch(postFavorite(dishId)),
+  deleteFavorite: (dishId) => dispatch(deleteFavorite(dishId)),
 });
 
 class Main extends Component {
@@ -63,6 +70,7 @@ class Main extends Component {
     this.props.fetchComments();
     this.props.fetchPromos();
     this.props.fetchLeaders();
+    this.props.fetchFavorites();
   }
 
   render() {
@@ -103,7 +111,10 @@ class Main extends Component {
           )}
           commentsErrMess={this.props.comments.errMess}
           postComment={this.props.postComment}
-          
+          favorite={this.props.favorites.favorites.dishes.some(
+            (dish) => dish._id === match.params.dishId
+          )}
+          postFavorite={this.props.postFavorite}
         />
       ) : (
         <DishDetail
@@ -150,34 +161,49 @@ class Main extends Component {
           loginUser={this.props.loginUser}
           logoutUser={this.props.logoutUser}
         />
-
-        <Switch>
-          <Route path="/home" component={HomePage} />
-          <Route
-            exact
-            path="/aboutus"
-            component={() => <About leaders={this.props.leaders} />}
-          />
-          } />
-          <Route
-            exact
-            path="/menu"
-            component={() => <Menu dishes={this.props.dishes} />}
-          />
-          <Route path="/menu/:dishId" component={DishWithId} />
-          
-          <Route
-            exact
-            path="/contactus"
-            component={() => (
-              <Contact
-                resetFeedbackForm={this.props.resetFeedbackForm}
-                postFeedback={this.props.postFeedback}
+        <TransitionGroup>
+          <CSSTransition
+            key={this.props.location.key}
+            classNames="page"
+            timeout={300}
+          >
+            <Switch>
+              <Route path="/home" component={HomePage} />
+              <Route
+                exact
+                path="/aboutus"
+                component={() => <About leaders={this.props.leaders} />}
               />
-            )}
-          />
-        </Switch>
-
+              } />
+              <Route
+                exact
+                path="/menu"
+                component={() => <Menu dishes={this.props.dishes} />}
+              />
+              <Route path="/menu/:dishId" component={DishWithId} />
+              <PrivateRoute
+                exact
+                path="/favorites"
+                component={() => (
+                  <Favorites
+                    favorites={this.props.favorites}
+                    deleteFavorite={this.props.deleteFavorite}
+                  />
+                )}
+              />
+              <Route
+                exact
+                path="/contactus"
+                component={() => (
+                  <Contact
+                    resetFeedbackForm={this.props.resetFeedbackForm}
+                    postFeedback={this.props.postFeedback}
+                  />
+                )}
+              />
+            </Switch>
+          </CSSTransition>
+        </TransitionGroup>
         <Footer />
       </div>
     );
